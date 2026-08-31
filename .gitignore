@@ -1,0 +1,11 @@
+/target-rh-extract/
+/target/
+**/*.rs.bk
+target/
+target-*/
+**/CACHEDIR.TAG
+**/.rustc_info.json
+examples/history-ui-e2e/site/
+examples/history-ui-e2e/end2end/test-results/
+examples/history-ui-e2e/end2end/playwright-report/
+examples/history-ui-e2e/end2end/node_modules/

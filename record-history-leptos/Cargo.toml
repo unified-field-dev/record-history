@@ -1,0 +1,64 @@
+[package]
+name = "record-history-leptos"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "Record History timeline UI — HistoryTimeline + paginated server functions"
+
+[lints]
+workspace = true
+
+[dependencies]
+leptos.workspace = true
+leptos_router.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+chrono = { version = "0.4", features = ["serde"] }
+
+record-history = { path = "../record-history", default-features = false, optional = true }
+orbital = { workspace = true, default-features = false }
+orbital-paging = { workspace = true }
+orbital-macros = { workspace = true }
+orbital-history = { workspace = true, default-features = false }
+orbital-base-components = { workspace = true, optional = true }
+# Force crc32fast 1.5.0 through the dylint graph (see workspace pin).
+crc32fast = { workspace = true }
+
+# Non-optional: `valence::RecordId` is part of the featureless/hydrate API surface
+# (constants, HistoryTimeline props, get_record_history_page signature).
+valence = { workspace = true }
+lepton = { workspace = true, optional = true }
+higgs = { workspace = true, optional = true }
+anyhow = { workspace = true, optional = true }
+tracing = { workspace = true, optional = true }
+
+[features]
+default = []
+preview = ["dep:orbital-base-components", "orbital-history/preview"]
+e2e-harness = []
+hydrate = [
+    "leptos/hydrate",
+    "orbital/hydrate",
+    "orbital-paging/hydrate",
+    "orbital-history/hydrate",
+]
+ssr = [
+    "leptos/ssr",
+    "leptos_router/ssr",
+    "orbital/ssr",
+    "orbital-paging/ssr",
+    "orbital-history/ssr",
+    "dep:record-history",
+    "record-history/ssr",
+    "valence/sqlite",
+    "dep:lepton",
+    "lepton/ssr",
+    "dep:higgs",
+    "higgs/ssr",
+    "dep:anyhow",
+    "dep:tracing",
+]
