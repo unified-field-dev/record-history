@@ -1,0 +1,156 @@
+# PR / merge gate aligned with docs/VERIFICATION.md.
+# Standalone checkout — UF deps resolve via git branch = main on unified-field-dev.
+# Private org kits (lepton) use the Actions GITHUB_TOKEN within unified-field-dev.
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_BUILD_JOBS: 1
+  CARGO_TARGET_DIR: target-record-history
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  RUST_BACKTRACE: 1
+  # Leptos workspace deps enable the `nightly` feature.
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+          components: rustfmt
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+          components: clippy
+      - name: cargo clippy (record-history all-targets + ssr)
+        run: cargo clippy -p record-history --all-targets --features ssr -- -D warnings
+      - name: cargo clippy (record-history-leptos + ssr)
+        run: cargo clippy -p record-history-leptos --all-targets --features ssr -- -D warnings
+      - name: cargo clippy (timeline-host)
+        run: cargo clippy -p timeline-host --all-targets -- -D warnings
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+      - name: cargo test (sibling-source UI contracts)
+        run: cargo test -p record-history --test workspace_members --test product_surface
+      - name: cargo test (history API + privacy contracts)
+        run: >
+          cargo test -p record-history --features ssr
+          --test history_api_contract
+          --test record_history_integration
+          --test source_deletion_integration
+          --test source_model_nav_integration
+          --test source_pagination_integration
+          --test source_query_hops_integration
+          --test source_refinement_integration
+          --test sqlite_file_fixture_upsert
+          --test privacy_policy_integration
+          --test parent_acl_integration
+      - name: cargo check + run (timeline-host)
+        run: |
+          cargo check -p timeline-host
+          cargo run -p timeline-host
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+      - name: cargo doc (record-history, deny broken intra-doc links)
+        env:
+          RUSTDOCFLAGS: "-D rustdoc::broken-intra-doc-links"
+        run: cargo doc -p record-history --features ssr --no-deps
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+          targets: wasm32-unknown-unknown
+      - name: Install cargo-leptos
+        run: cargo install cargo-leptos --locked --version 0.3.6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: examples/history-ui-e2e/end2end/package-lock.json
+      - name: Install npm dependencies
+        working-directory: examples/history-ui-e2e/end2end
+        run: npm ci
+      - name: Get Playwright version
+        id: pw-version
+        working-directory: examples/history-ui-e2e/end2end
+        run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw-version.outputs.version }}-record-history
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: examples/history-ui-e2e/end2end
+        run: npx playwright install --with-deps chromium
+      - name: Install Playwright OS deps when cache hit
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: examples/history-ui-e2e/end2end
+        run: npx playwright install-deps chromium
+      - name: cargo leptos end-to-end
+        env:
+          CI: true
+        run: cargo leptos end-to-end --project history-ui-e2e
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-record-history-${{ github.run_id }}
+          path: |
+            examples/history-ui-e2e/end2end/playwright-report/
+            examples/history-ui-e2e/end2end/test-results/
+          if-no-files-found: ignore
+
+  leptos-lints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+      - name: Install cargo-dylint
+        run: |
+          cargo install cargo-dylint --locked --version 6.0.1 --force
+          cargo install dylint-link --locked --version 6.0.1 --force
+      - name: Install leptos-lints nightly toolchain
+        run: rustup toolchain install nightly-2025-05-14 --component rustc-dev,llvm-tools-preview
+      - name: cargo dylint (record-history-leptos hydrate)
+        env:
+          CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: fallback
+          RUSTFLAGS: "-D warnings -Zcrate-attr=feature(stdarch_x86_avx512)"
+        run: cargo dylint --all -p record-history-leptos --no-deps -- --features hydrate

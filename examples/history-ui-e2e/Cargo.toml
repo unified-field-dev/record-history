@@ -1,0 +1,90 @@
+[package]
+name = "history-ui-e2e"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license.workspace = true
+description = "Library-owned Leptos host + Playwright for HistoryTimeline"
+
+[lints]
+workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+anyhow = { workspace = true, optional = true }
+axum = { workspace = true, optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
+console_log = { version = "1", optional = true }
+leptos = { workspace = true }
+leptos_axum = { workspace = true, optional = true, default-features = true }
+leptos_meta = { workspace = true }
+leptos_router = { workspace = true }
+log = { workspace = true, optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+simple_logger = { version = "5", optional = true }
+tokio = { workspace = true, optional = true }
+tower-http = { version = "0.6", features = ["fs"], optional = true }
+tower-sessions = { workspace = true, optional = true }
+any_spawner = { version = "0.3", features = ["tokio"], optional = true }
+higgs = { workspace = true, optional = true }
+higgs-identity = { workspace = true, optional = true }
+lepton = { workspace = true, optional = true }
+valence = { workspace = true }
+chrono = { workspace = true, optional = true }
+uf-product = { workspace = true, default-features = false }
+uf-integrations = { workspace = true, default-features = false }
+record-history = { path = "../../record-history", default-features = false, optional = true }
+record-history-leptos = { path = "../../record-history-leptos", default-features = false }
+icondata = { workspace = true }
+wasm-bindgen = { workspace = true, optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+getrandom_03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
+
+[features]
+default = []
+hydrate = [
+    "leptos/hydrate",
+    "uf-product/hydrate",
+    "uf-integrations/hydrate",
+    "record-history-leptos/hydrate",
+    "dep:console_error_panic_hook",
+    "dep:console_log",
+    "dep:wasm-bindgen",
+    "dep:log",
+]
+ssr = [
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "uf-product/ssr",
+    "uf-integrations/ssr",
+    "record-history-leptos/ssr",
+    "record-history-leptos/e2e-harness",
+    "dep:record-history",
+    "record-history/ssr",
+    "dep:axum",
+    "dep:leptos_axum",
+    "dep:tokio",
+    "dep:tower-http",
+    "dep:tower-sessions",
+    "dep:anyhow",
+    "dep:simple_logger",
+    "dep:log",
+    "dep:any_spawner",
+    "dep:chrono",
+    "dep:higgs",
+    "higgs/ssr",
+    "dep:higgs-identity",
+    "dep:lepton",
+    "lepton/ssr",
+]
+
+[[bin]]
+name = "history-ui-e2e"
+path = "src/main.rs"
+required-features = ["ssr"]

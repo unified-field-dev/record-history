@@ -1,0 +1,90 @@
+[package]
+name = "record-history"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "RecordHistory Valence trait and platform helpers for audit timelines"
+
+[lints]
+workspace = true
+
+[dependencies]
+valence = { workspace = true, optional = true }
+lepton = { workspace = true, optional = true }
+chrono = { version = "0.4", features = ["serde"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+async-trait = { workspace = true, optional = true }
+tracing = { workspace = true }
+
+[features]
+default = ["ssr"]
+ssr = [
+    "dep:valence",
+    "valence/sqlite",
+    "dep:lepton",
+    "lepton/ssr",
+    "dep:async-trait"]
+
+[dev-dependencies]
+lepton-host-adapter = { workspace = true, default-features = false, features = ["ssr"] }
+tokio = { workspace = true }
+lepton = { workspace = true, default-features = false, features = ["ssr"] }
+anyhow = { workspace = true }
+
+[build-dependencies]
+valence-codegen = { workspace = true }
+
+[[test]]
+name = "record_history_integration"
+required-features = ["ssr"]
+
+[[test]]
+name = "history_api_contract"
+required-features = ["ssr"]
+
+[[test]]
+name = "sqlite_file_fixture_upsert"
+required-features = ["ssr"]
+
+[[test]]
+name = "source_deletion_integration"
+required-features = ["ssr"]
+
+[[test]]
+name = "source_model_nav_integration"
+required-features = ["ssr"]
+
+[[test]]
+name = "source_pagination_integration"
+required-features = ["ssr"]
+
+[[test]]
+name = "source_query_hops_integration"
+required-features = ["ssr"]
+
+[[test]]
+name = "source_refinement_integration"
+required-features = ["ssr"]
+
+[[test]]
+name = "helpers"
+required-features = ["ssr"]
+
+[[test]]
+name = "workspace_members"
+
+[[test]]
+name = "product_surface"
+
+[[test]]
+name = "privacy_policy_integration"
+required-features = ["ssr"]
+
+[[test]]
+name = "parent_acl_integration"
+required-features = ["ssr"]
