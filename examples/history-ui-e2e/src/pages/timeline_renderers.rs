@@ -9,7 +9,7 @@ use record_history_leptos::{
     HistoryChange, HistoryEntryView, HistoryKindEntryRow, HistoryRenderContext, HistoryRenderers,
     HistoryTimeline, E2E_RECORD_HISTORY_KIND,
 };
-use uf_product::components::ContentContainer;
+use uf_product::components::{Body1, Body1Strong, ContentContainer};
 use valence::RecordId;
 
 fn fixture_kind_renderers() -> HistoryRenderers {
@@ -26,10 +26,12 @@ fn fixture_kind_renderers() -> HistoryRenderers {
             Some(
                 view! {
                     <HistoryKindEntryRow entry=entry>
-                        <div data-testid="e2e-fixture-custom-row" class="orbital-history__change">
-                            <strong>"Custom renderer"</strong>
-                            " — "
-                            {summary}
+                        <div data-testid="e2e-fixture-custom-row">
+                            <Body1 class="orbital-history__change".to_string()>
+                                <Body1Strong>"Custom renderer"</Body1Strong>
+                                " — "
+                                {summary}
+                            </Body1>
                         </div>
                     </HistoryKindEntryRow>
                 }

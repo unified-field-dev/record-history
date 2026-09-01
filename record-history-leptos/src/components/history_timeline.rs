@@ -4,7 +4,6 @@ use crate::constants::RECORD_HISTORY_PAGE_SIZE;
 use crate::get_record_history_page;
 use crate::render::map_history_page;
 use leptos::prelude::*;
-use orbital::components::Subtitle2;
 use orbital::primitives::{MessageBar, MessageBarIntent};
 use orbital_history::{
     page_fetcher, HistoryPagingMode, HistoryRenderers, HistorySource,
@@ -145,7 +144,6 @@ pub fn HistoryTimeline(
     let renderers = renderers.unwrap_or_default();
 
     view! {
-        <Subtitle2>"History"</Subtitle2>
         <div
             data-testid="record-history-access-denied"
             hidden=move || !access_denied.get()
