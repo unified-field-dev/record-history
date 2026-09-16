@@ -97,13 +97,22 @@
 //! session allowed to create history rows (often System after capturing the
 //! request actor on the row).
 //!
-//! ```rust,ignore
-//! use record_history::E2eRecordHistoryFixture;
+//! ```
+//! use record_history::{E2eHistorySourceA, E2eRecordHistoryFixture, RecordHistoryFields};
 //! use valence::{Model, RecordId};
 //!
+//! # use record_history::doctest_support::doctest_valence;
+//! # #[tokio::main]
+//! # async fn main() -> anyhow::Result<()> {
+//! # let valence = doctest_valence().await;
+//! # // A HistorySource parent must exist first — illustrated here with the
+//! # // platform's own fixture table (a product creates its own parent via
+//! # // the same generated Model::create / upsert its own schema exposes).
+//! # let parent = E2eHistorySourceA::new("Example parent".to_string())?;
+//! # E2eHistorySourceA::upsert_used("tag-1", parent, &valence, valence::use_!(r#"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."#)).await?;
 //! // Direct write — same Model::create / upsert a SideEffect would call.
 //! // Product code usually wraps this in SideEffect<Parent>::on_mutation.
-//! let source = RecordId::new("tag", "tag-1");
+//! let source = RecordId::new("e2e_history_source_a", "tag-1");
 //! let row = E2eRecordHistoryFixture::new(
 //!     source.clone(),
 //!     "name".to_string(),
@@ -119,6 +128,8 @@
 //!     .expect("row written");
 //! assert_eq!(stored.field_name(), "name");
 //! assert_eq!(stored.source(), &source);
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! **Variant — edge / field helpers:** for relation events use
@@ -128,7 +139,7 @@
 //! `added …` / `removed …` / `changed …` lines; leptos maps non-lifecycle rows
 //! to Orbital FieldDiff with the same raw old/new strings.
 //!
-//! ```rust,ignore
+//! ```
 //! use record_history::{history_edge_added, history_field_changed};
 //!
 //! let grant = history_edge_added("granted_users", "user:42");
@@ -166,10 +177,19 @@
 //! with `traits: [RecordHistory]`, and something must have written rows (see
 //! [Write audit history rows](#write-audit-history-rows)).
 //!
-//! ```rust,ignore
-//! use record_history::{history_for_source, E2eRecordHistoryFixture};
+//! ```
+//! use record_history::{
+//!     history_for_source, E2eHistorySourceA, E2eRecordHistoryFixture, RecordHistoryFields,
+//! };
 //! use valence::{Model, RecordId};
 //!
+//! # use record_history::doctest_support::doctest_valence;
+//! # #[tokio::main]
+//! # async fn main() -> anyhow::Result<()> {
+//! # let valence = doctest_valence().await;
+//! # let parent = E2eHistorySourceA::new("Example parent".to_string())?;
+//! # E2eHistorySourceA::upsert_used("tag-2", parent, &valence, valence::use_!(r#"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."#)).await?;
+//! # let source = RecordId::new("e2e_history_source_a", "tag-2");
 //! // 1. Write — same generated Model path a side effect would call.
 //! let row = E2eRecordHistoryFixture::new(
 //!     source.clone(),
@@ -184,6 +204,8 @@
 //! // 2. Read — ACL-aware load across every RecordHistory implementor for source.
 //! let rows = history_for_source(&source, &valence).await?;
 //! assert_eq!(rows[0].field_name(), "name");
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! On success you hold [`RecordHistoryModel`] rows (newest-first ordering is up
@@ -217,6 +239,8 @@
 //! |------|-----------------|
 //! | `ssr` (default) | Valence + SQLite, Lepton SSR, async trait helpers for reads and schemas |
 
+#[cfg(feature = "doctest-support")]
+pub mod doctest_support;
 pub mod embedded_surreal;
 pub mod error;
 pub mod format;

@@ -36,10 +36,17 @@ higgs = { workspace = true, optional = true }
 anyhow = { workspace = true, optional = true }
 tracing = { workspace = true, optional = true }
 
+[dev-dependencies]
+tokio = { workspace = true }
+
 [features]
 default = []
 preview = ["dep:orbital-base-components", "orbital-history/preview"]
 e2e-harness = []
+# Non-default; enables the doctest-only Valence bootstrap in `record-history`
+# (`doctest_support::doctest_valence`) for `cargo test --doc`. Never enabled
+# by a product build.
+doctest-support = ["ssr", "record-history/doctest-support"]
 hydrate = [
     "leptos/hydrate",
     "orbital/hydrate",
@@ -62,3 +69,15 @@ ssr = [
     "dep:anyhow",
     "dep:tracing",
 ]
+
+[[test]]
+name = "helpers"
+required-features = ["ssr"]
+
+[[test]]
+name = "history_row_mapping_integration"
+required-features = ["ssr"]
+
+[[test]]
+name = "acl_message_sync"
+required-features = ["ssr"]

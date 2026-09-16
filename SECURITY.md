@@ -66,3 +66,13 @@ unbounded history materialization. Actor profile links are emitted only for safe
 
 **Fixture / product history tables:** create and delete stay `SYSTEM_ONLY`; update
 is blocked.
+
+**ACL-vs-generic-failure classification:** `record-history-leptos` classifies a
+`ServerFnError` message client-side (`is_history_acl_error`) to decide between the
+access-denied and generic-failure UI states. The two crates' literals are kept
+in sync by `record-history-leptos/tests/acl_message_sync.rs`, which asserts
+`record_history_leptos::constants::HISTORY_ACL_DENIED_MSG ==
+record_history::HISTORY_ACCESS_DENIED` on every `ssr`-featured CI run. A
+misclassification only changes which UI message an already-denied request
+sees — the authorization decision itself is enforced server-side in
+`authorize_history_source_read` regardless of client display.

@@ -104,11 +104,19 @@ test.describe("pw-history-workflows", () => {
     });
     await expect(fixtureEntry.getByText("Custom renderer")).toBeVisible();
     await expect(fixtureEntry.getByText(seeded.fixture_kind_marker)).toBeVisible();
-    await expect(altEntry).toBeVisible();
+    // Two kinds are registered (not one): the alt entry must get its OWN
+    // renderer, not the fixture renderer and not stock fallthrough — proving
+    // `kind_views` dispatches by table name rather than only proving a
+    // single-entry map falls through for everything else.
+    await expect(altEntry.getByTestId("e2e-fixture-alt-custom-row")).toBeVisible({
+      timeout: 30_000,
+    });
+    await expect(altEntry.getByText("Alt renderer")).toBeVisible();
     await expect(altEntry.getByText(seeded.alt_kind_marker)).toBeVisible();
     await expect(altEntry.getByText("Custom renderer")).toHaveCount(0);
     await expect(altEntry.getByTestId("e2e-fixture-custom-row")).toHaveCount(0);
     await expect(page.getByTestId("e2e-fixture-custom-row")).toHaveCount(1);
+    await expect(page.getByTestId("e2e-fixture-alt-custom-row")).toHaveCount(1);
   });
 
   test("pw-history-page-scroll-happy", async ({ page }) => {

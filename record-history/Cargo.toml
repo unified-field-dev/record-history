@@ -29,6 +29,9 @@ ssr = [
     "dep:lepton",
     "lepton/ssr",
     "dep:async-trait"]
+# Non-default; enables `doctest_support::doctest_valence` for `cargo test --doc`.
+# Never enabled by a product build.
+doctest-support = ["ssr"]
 
 [dev-dependencies]
 lepton-host-adapter = { workspace = true, default-features = false, features = ["ssr"] }

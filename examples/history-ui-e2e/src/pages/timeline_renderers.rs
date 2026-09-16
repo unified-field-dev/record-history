@@ -7,28 +7,57 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
 use record_history_leptos::{
     HistoryChange, HistoryEntryView, HistoryKindEntryRow, HistoryRenderContext, HistoryRenderers,
-    HistoryTimeline, E2E_RECORD_HISTORY_KIND,
+    HistoryTimeline, E2E_RECORD_HISTORY_ALT_KIND, E2E_RECORD_HISTORY_KIND,
 };
 use uf_product::components::{Body1, Body1Strong, ContentContainer};
 use valence::RecordId;
 
+fn change_summary(entry: &record_history_leptos::HistoryEntry) -> String {
+    match &entry.change {
+        HistoryChange::FieldDiff { new_value, .. } => new_value.clone(),
+        HistoryChange::Custom { summary } => summary.clone(),
+        _ => String::new(),
+    }
+}
+
+/// Copy this shape — see `record-history-leptos` crate doc
+/// "Register history renderers". Two kinds are registered here (not one) to
+/// prove `kind_views` dispatches by table name rather than only proving a
+/// single-entry map falls through correctly for everything else.
 fn fixture_kind_renderers() -> HistoryRenderers {
     let mut kind_views = HashMap::new();
     kind_views.insert(
         E2E_RECORD_HISTORY_KIND.into(),
         Arc::new(|ctx: HistoryRenderContext| {
             let entry = ctx.entry.clone();
-            let summary = match &entry.change {
-                HistoryChange::FieldDiff { new_value, .. } => new_value.clone(),
-                HistoryChange::Custom { summary } => summary.clone(),
-                _ => String::new(),
-            };
+            let summary = change_summary(&entry);
             Some(
                 view! {
                     <HistoryKindEntryRow entry=entry>
                         <div data-testid="e2e-fixture-custom-row">
                             <Body1 class="orbital-history__change".to_string()>
                                 <Body1Strong>"Custom renderer"</Body1Strong>
+                                " — "
+                                {summary}
+                            </Body1>
+                        </div>
+                    </HistoryKindEntryRow>
+                }
+                .into_any(),
+            )
+        }) as HistoryEntryView,
+    );
+    kind_views.insert(
+        E2E_RECORD_HISTORY_ALT_KIND.into(),
+        Arc::new(|ctx: HistoryRenderContext| {
+            let entry = ctx.entry.clone();
+            let summary = change_summary(&entry);
+            Some(
+                view! {
+                    <HistoryKindEntryRow entry=entry>
+                        <div data-testid="e2e-fixture-alt-custom-row">
+                            <Body1 class="orbital-history__change".to_string()>
+                                <Body1Strong>"Alt renderer"</Body1Strong>
                                 " — "
                                 {summary}
                             </Body1>

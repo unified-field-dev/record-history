@@ -1,3 +1,12 @@
+// The `#[server]` macro expands `get_record_history_page` into a single
+// `async fn` shared by both cfg branches: the `ssr` body awaits real I/O,
+// but the non-`ssr` stub (used by `hydrate`-only client builds) returns
+// immediately. Clippy's `unused_async_trait_impl` fires on the macro's
+// generated trait impl, not the annotated item, so a per-item `#[allow]`
+// does not reach it — the allow must be file-scoped. Splitting into two
+// functions would break the `#[server]` macro's single-signature contract.
+#![allow(clippy::unused_async_trait_impl)]
+
 use crate::render::HistoryRowView;
 use leptos::prelude::*;
 use orbital_paging::Page;
@@ -193,7 +202,9 @@ fn require_session(ctx: &higgs::Higgs) -> Result<(), ServerFnError> {
     if ctx.session_user_id().is_some() {
         Ok(())
     } else {
-        Err(ServerFnError::new("Authentication required"))
+        Err(ServerFnError::new(
+            crate::constants::HISTORY_AUTH_REQUIRED_MSG,
+        ))
     }
 }
 

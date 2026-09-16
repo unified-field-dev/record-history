@@ -62,6 +62,21 @@
 //! surface as the client-visible `Failed to load record history` string from
 //! [`get_record_history_page`]. Auth failures use `Authentication required`.
 //!
+//! **Variant — product-app wrapper fn:** Tag, Polaron, and Finance all wrap the
+//! embed in a small `#[cfg(...)]`-gated helper on the product-app side, rather
+//! than inlining `<HistoryTimeline />` directly in each detail page's `view!`:
+//!
+//! ```rust,ignore
+//! #[cfg(any(feature = "hydrate", feature = "ssr"))]
+//! pub fn history_timeline(source: RecordId) -> impl IntoView {
+//!     view! { <HistoryTimeline source=source /> }
+//! }
+//! ```
+//!
+//! Detail pages call `history_timeline(RecordId::new(..))` inside a "history"
+//! tab body. This keeps every page's import list identical and gives one place
+//! to add `kind_filter` / `renderers` later without touching call sites.
+//!
 //! **Next:** [Register history renderers](#register-history-renderers) when a kind
 //! needs custom chrome, or run workspace example `timeline-host`.
 //!
@@ -193,9 +208,9 @@ pub mod server;
 use crc32fast as _;
 
 pub use constants::{
-    e2e_record_history_empty_source, e2e_record_history_source, E2E_RECORD_HISTORY_EMPTY_SOURCE_ID,
-    E2E_RECORD_HISTORY_KIND, E2E_RECORD_HISTORY_ROW_COUNT, E2E_RECORD_HISTORY_SOURCE_ID,
-    RECORD_HISTORY_PAGE_SIZE,
+    e2e_record_history_empty_source, e2e_record_history_source, E2E_RECORD_HISTORY_ALT_KIND,
+    E2E_RECORD_HISTORY_EMPTY_SOURCE_ID, E2E_RECORD_HISTORY_KIND, E2E_RECORD_HISTORY_ROW_COUNT,
+    E2E_RECORD_HISTORY_SOURCE_ID, RECORD_HISTORY_PAGE_SIZE,
 };
 pub use get_record_history_page::{
     clamp_history_page_limit, clamp_history_page_offset, get_record_history_page,

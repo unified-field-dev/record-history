@@ -45,6 +45,8 @@ jobs:
         run: cargo clippy -p record-history --all-targets --features ssr -- -D warnings
       - name: cargo clippy (record-history-leptos + ssr)
         run: cargo clippy -p record-history-leptos --all-targets --features ssr -- -D warnings
+      - name: cargo clippy (record-history-leptos hydrate, no ssr)
+        run: cargo clippy -p record-history-leptos --lib --no-default-features --features hydrate -- -D warnings
       - name: cargo clippy (timeline-host)
         run: cargo clippy -p timeline-host --all-targets -- -D warnings
 
@@ -70,6 +72,8 @@ jobs:
           --test sqlite_file_fixture_upsert
           --test privacy_policy_integration
           --test parent_acl_integration
+      - name: cargo test (record-history-leptos, ssr)
+        run: cargo test -p record-history-leptos --features ssr
       - name: cargo check + run (timeline-host)
         run: |
           cargo check -p timeline-host
@@ -86,6 +90,10 @@ jobs:
         env:
           RUSTDOCFLAGS: "-D rustdoc::broken-intra-doc-links"
         run: cargo doc -p record-history --features ssr --no-deps
+      - name: cargo test --doc (record-history)
+        run: cargo test --doc -p record-history --features ssr,doctest-support
+      - name: cargo test --doc (record-history-leptos)
+        run: cargo test --doc -p record-history-leptos --features ssr,doctest-support
 
   e2e:
     runs-on: ubuntu-latest

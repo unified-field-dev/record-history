@@ -32,6 +32,7 @@ cargo fmt --all -- --check
 ```bash
 cargo clippy -p record-history --all-targets --features ssr -- -D warnings
 cargo clippy -p record-history-leptos --all-targets --features ssr -- -D warnings
+cargo clippy -p record-history-leptos --lib --no-default-features --features hydrate -- -D warnings
 cargo clippy -p timeline-host --all-targets -- -D warnings
 ```
 
@@ -50,6 +51,7 @@ cargo test -p record-history --features ssr \
   --test sqlite_file_fixture_upsert \
   --test privacy_policy_integration \
   --test parent_acl_integration
+cargo test -p record-history-leptos --features ssr
 cargo check -p timeline-host
 cargo run -p timeline-host
 ```
@@ -60,6 +62,8 @@ Success line: `timeline_host: OK — /history deny/allow + seeded timeline`.
 
 ```bash
 RUSTDOCFLAGS="-D rustdoc::broken-intra-doc-links" cargo doc -p record-history --features ssr --no-deps
+cargo test --doc -p record-history --features ssr,doctest-support
+cargo test --doc -p record-history-leptos --features ssr,doctest-support
 ```
 
 ### e2e

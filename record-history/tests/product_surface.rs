@@ -345,6 +345,93 @@ fn actor_email_leak_sad_path() {
 }
 
 #[test]
+fn timeline_host_readme_has_no_placeholder_pin_sad() {
+    let readme = fs::read_to_string(workspace_root().join("examples/timeline-host/README.md"))
+        .expect("timeline-host README.md");
+    assert!(
+        !readme.contains("REPLACE_WITH_PIN"),
+        "timeline-host README must not ship an unfilled dependency-pin placeholder"
+    );
+    assert!(
+        readme.contains(r#"branch = "main""#),
+        "timeline-host README's product-mount dependency block should match the \
+         root README's `branch = \"main\"` convention"
+    );
+}
+
+#[test]
+fn embed_section_documents_wrapper_fn_convention_happy_path() {
+    let lib = read_leptos("lib.rs");
+    let start = lib
+        .find("## Embed HistoryTimeline")
+        .expect("Embed HistoryTimeline section");
+    let end = lib[start..]
+        .find("## Paginated SSR fetch")
+        .map(|i| start + i)
+        .unwrap_or(lib.len());
+    let section = &lib[start..end];
+    assert!(
+        section.contains("Variant — product-app wrapper fn"),
+        "Embed HistoryTimeline section must document the wrapper-fn convention \
+         Tag/Polaron/Finance all use"
+    );
+    assert!(
+        section.contains(r#"#[cfg(any(feature = "hydrate", feature = "ssr"))]"#),
+        "wrapper-fn variant must show the real cfg gate, not a paraphrase"
+    );
+}
+
+#[test]
+fn resolve_source_doc_no_longer_ambiguous_sad() {
+    let path = workspace_root().join("record-history/src/source/resolve.rs");
+    let resolve =
+        fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    assert!(
+        !resolve.contains("product crates extend with their own dispatch"),
+        "resolve.rs doc comment must not reinstate the ambiguous \
+         extension-point phrasing — this helper is fixture-scoped, not \
+         a generic dispatch point"
+    );
+    assert!(
+        resolve.contains("Model::get_used"),
+        "resolve.rs doc comment must point products at their own Model::get_used"
+    );
+}
+
+#[test]
+fn history_timeline_prop_names_match_doc_example_happy_path() {
+    let lib = read_leptos("lib.rs");
+    let timeline = read_leptos("components/history_timeline.rs");
+    for prop in ["source=", "kind_filter=", "renderers="] {
+        assert!(
+            lib.contains(prop),
+            "crate-doc HistoryTimeline example missing prop `{prop}`"
+        );
+        assert!(
+            timeline.contains(prop.trim_end_matches('=')),
+            "HistoryTimeline component definition missing prop `{prop}` \
+             named in the crate-doc example — doctests cannot execute this \
+             Leptos-reactive example, so a prop rename must be caught here"
+        );
+    }
+}
+
+#[test]
+fn history_timeline_no_raw_acl_literal_sad() {
+    let timeline = read_leptos("components/history_timeline.rs");
+    assert!(
+        !timeline.contains("\"Not authorized\""),
+        "history_timeline.rs must classify ACL errors through \
+         crate::constants::HISTORY_ACL_DENIED_MSG, not a raw literal — \
+         see tests/acl_message_sync.rs for the cross-crate contract"
+    );
+    assert!(
+        timeline.contains("crate::constants::HISTORY_ACL_DENIED_MSG"),
+        "is_history_acl_error must reference the shared constant"
+    );
+}
+
+#[test]
 fn timeline_host_inventory_sync_happy_path() {
     let host = fs::read_to_string(workspace_root().join("examples/timeline-host/src/main.rs"))
         .expect("timeline-host main.rs");

@@ -32,8 +32,8 @@ for a protected host API; the embed surface stays `HistoryTimeline` +
 
 ```toml
 [dependencies]
-record-history = { git = "https://github.com/unified-field-dev/record-history", package = "record-history", rev = "REPLACE_WITH_PIN", default-features = false }
-record-history-leptos = { git = "https://github.com/unified-field-dev/record-history", package = "record-history-leptos", rev = "REPLACE_WITH_PIN", default-features = false }
+record-history = { git = "https://github.com/unified-field-dev/record-history", package = "record-history", branch = "main", default-features = false }
+record-history-leptos = { git = "https://github.com/unified-field-dev/record-history", package = "record-history-leptos", branch = "main", default-features = false }
 uf-product = { /* your pin */, default-features = false }
 uf-integrations = { /* your pin */, default-features = false }
 

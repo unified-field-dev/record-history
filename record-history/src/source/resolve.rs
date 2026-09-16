@@ -4,7 +4,15 @@ use valence::{Model, RecordId, Result, Valence};
 
 use crate::generated::{E2eHistorySourceA, E2eHistorySourceB};
 
-/// Resolved platform fixture source (product crates extend with their own dispatch).
+/// Resolved platform fixture source.
+///
+/// This helper only dispatches the platform's own E2E fixture tables
+/// (`e2e_history_source_a` / `e2e_history_source_b`). It is not a generic
+/// extension point — no shipped product (Tag, Polaron, Finance) calls it.
+/// Products read their own parent row directly with their own generated
+/// `Model::get_used`, then call [`crate::history_for_source`] for the audit
+/// rows — see the crate-root [Read history for a source](../index.html#read-history-for-a-source)
+/// guide.
 #[derive(Debug)]
 pub enum ResolvedHistorySource {
     /// Row loaded from the `e2e_history_source_a` fixture table.

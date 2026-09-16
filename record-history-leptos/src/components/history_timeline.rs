@@ -14,7 +14,8 @@ use valence::RecordId;
 
 fn is_history_acl_error(err: &ServerFnError) -> bool {
     let msg = err.to_string();
-    msg.contains("Not authorized") || msg.contains("Authentication required")
+    msg.contains(crate::constants::HISTORY_ACL_DENIED_MSG)
+        || msg.contains(crate::constants::HISTORY_AUTH_REQUIRED_MSG)
 }
 
 /// Self-loading audit timeline for a parent record (`source`).
@@ -149,7 +150,7 @@ pub fn HistoryTimeline(
             hidden=move || !access_denied.get()
         >
             <MessageBar intent=MessageBarIntent::Error>
-                "Not authorized to view this history"
+                {crate::constants::HISTORY_ACL_DENIED_MSG}
             </MessageBar>
         </div>
         <div
@@ -174,5 +175,29 @@ pub fn HistoryTimeline(
                 renderers=renderers
             />
         </div>
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_history_acl_error;
+    use leptos::prelude::ServerFnError;
+
+    #[test]
+    fn is_history_acl_error_matches_acl_denied_happy_path() {
+        let err = ServerFnError::new(crate::constants::HISTORY_ACL_DENIED_MSG);
+        assert!(is_history_acl_error(&err));
+    }
+
+    #[test]
+    fn is_history_acl_error_matches_auth_required_happy_path() {
+        let err = ServerFnError::new(crate::constants::HISTORY_AUTH_REQUIRED_MSG);
+        assert!(is_history_acl_error(&err));
+    }
+
+    #[test]
+    fn is_history_acl_error_rejects_generic_failure_sad() {
+        let err = ServerFnError::new("Failed to load record history");
+        assert!(!is_history_acl_error(&err));
     }
 }
