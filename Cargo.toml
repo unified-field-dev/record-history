@@ -146,10 +146,10 @@ orbital-scheduler = { git = "https://github.com/unified-field-dev/orbital", bran
 # Platform — uf-dev git main. mem only at workspace level so hydrate/wasm
 # (record-history-leptos) does not pull sqlx/mio. Enable `valence/sqlite` via
 # package `ssr` features for native SSR.
-valence = { package = "uf-valence", git = "https://github.com/deathbreakfast/valence", branch = "main", default-features = false, features = ["mem"] }
-valence-codegen = { package = "uf-valence-codegen", git = "https://github.com/deathbreakfast/valence", branch = "main" }
-valence-macros = { package = "uf-valence-macros", git = "https://github.com/deathbreakfast/valence", branch = "main" }
-valence-telemetry = { package = "uf-valence-telemetry", git = "https://github.com/deathbreakfast/valence", branch = "main" }
+valence = { package = "uf-valence", git = "https://github.com/unified-field-dev/valence", branch = "main", default-features = false, features = ["mem"] }
+valence-codegen = { package = "uf-valence-codegen", git = "https://github.com/unified-field-dev/valence", branch = "main" }
+valence-macros = { package = "uf-valence-macros", git = "https://github.com/unified-field-dev/valence", branch = "main" }
+valence-telemetry = { package = "uf-valence-telemetry", git = "https://github.com/unified-field-dev/valence", branch = "main" }
 higgs = { git = "https://github.com/unified-field-dev/higgs", branch = "main", default-features = false }
 higgs-host = { git = "https://github.com/unified-field-dev/higgs", branch = "main", default-features = false }
 higgs-identity = { git = "https://github.com/unified-field-dev/higgs", branch = "main" }
@@ -208,18 +208,18 @@ web-sys = { version = "=0.3.103", features = ["HtmlElement", "DomRect", "Element
 # Some kits still declare Valence/Photon/Orbital via crates.io. Redirect onto the same
 # uf-dev git tips as [workspace.dependencies] so those types unify.
 [patch.crates-io]
-uf-valence = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-codegen = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-core = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-macros = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-telemetry = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-schema-dsl = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-backend-mem = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-backend-sqlite = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-backend-sql = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-backend-postgres = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-backend-hybrid = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
-uf-valence-backend-indradb = { git = "https://github.com/deathbreakfast/valence", branch = "main" }
+uf-valence = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-codegen = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-core = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-macros = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-telemetry = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-schema-dsl = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-backend-mem = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-backend-sqlite = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-backend-sql = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-backend-postgres = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-backend-hybrid = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-backend-indradb = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
 uf-photon = { git = "https://github.com/unified-field-dev/photon", branch = "main" }
 uf-photon-core = { git = "https://github.com/unified-field-dev/photon", branch = "main" }
 photon-runtime = { git = "https://github.com/unified-field-dev/photon", branch = "main" }
