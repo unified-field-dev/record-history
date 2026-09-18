@@ -103,7 +103,7 @@ pub async fn history_for_source(
     for table in tables {
         let rows: Vec<HistoryRowWire> = QueryCore::new(table.to_string())
             .where_record("source".to_string(), predicate.clone())
-            .execute(valence)
+            .execute_used(valence, valence::use_!(r"When you **view a record's history**, we **query every table that opted into RecordHistory** for rows matching that record, so the timeline shows every source that touched it. Only the caller allowed to read that record's history sees the result."))
             .await
             .map_err(HistoryError::query)?;
         for row in rows {

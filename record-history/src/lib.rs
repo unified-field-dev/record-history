@@ -109,7 +109,7 @@
 //! # // platform's own fixture table (a product creates its own parent via
 //! # // the same generated Model::create / upsert its own schema exposes).
 //! # let parent = E2eHistorySourceA::new("Example parent".to_string())?;
-//! # E2eHistorySourceA::upsert_used("tag-1", parent, &valence, valence::use_!(r#"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."#)).await?;
+//! # E2eHistorySourceA::upsert_used("tag-1", parent, &valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only.")).await?;
 //! // Direct write — same Model::create / upsert a SideEffect would call.
 //! // Product code usually wraps this in SideEffect<Parent>::on_mutation.
 //! let source = RecordId::new("e2e_history_source_a", "tag-1");
@@ -121,9 +121,9 @@
 //!     chrono::Utc::now(),
 //!     None, // actor: None => timeline shows "System"
 //! )?;
-//! E2eRecordHistoryFixture::upsert_used("row-1", row, &valence, valence::use_!(r#"When **record history** needs to persist work, we **save E2e Record History Fixture** so the next step in that feature can continue with the latest values. People and services allowed for **record history** use this data for that workflow—not as a general export of unrelated personal fields."#)).await?;
+//! E2eRecordHistoryFixture::upsert_used("row-1", row, &valence, valence::use_!(r"When **record history** needs to persist work, we **save E2e Record History Fixture** so the next step in that feature can continue with the latest values. People and services allowed for **record history** use this data for that workflow—not as a general export of unrelated personal fields.")).await?;
 //!
-//! let stored = E2eRecordHistoryFixture::get_used("row-1", &valence, valence::use_!(r#"In **record history**, we **load E2e Record History Fixture** so the application can decide what to do next in this workflow. The result is used by **record history** logic—not necessarily displayed on a page unless that feature’s UI shows it."#))
+//! let stored = E2eRecordHistoryFixture::get_used("row-1", &valence, valence::use_!(r"In **record history**, we **load E2e Record History Fixture** so the application can decide what to do next in this workflow. The result is used by **record history** logic—not necessarily displayed on a page unless that feature’s UI shows it."))
 //!     .await?
 //!     .expect("row written");
 //! assert_eq!(stored.field_name(), "name");
@@ -188,7 +188,7 @@
 //! # async fn main() -> anyhow::Result<()> {
 //! # let valence = doctest_valence().await;
 //! # let parent = E2eHistorySourceA::new("Example parent".to_string())?;
-//! # E2eHistorySourceA::upsert_used("tag-2", parent, &valence, valence::use_!(r#"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."#)).await?;
+//! # E2eHistorySourceA::upsert_used("tag-2", parent, &valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only.")).await?;
 //! # let source = RecordId::new("e2e_history_source_a", "tag-2");
 //! // 1. Write — same generated Model path a side effect would call.
 //! let row = E2eRecordHistoryFixture::new(
@@ -199,7 +199,7 @@
 //!     chrono::Utc::now(),
 //!     None,
 //! )?;
-//! E2eRecordHistoryFixture::upsert_used("row-1", row, &valence, valence::use_!(r#"When **record history** needs to persist work, we **save E2e Record History Fixture** so the next step in that feature can continue with the latest values. People and services allowed for **record history** use this data for that workflow—not as a general export of unrelated personal fields."#)).await?;
+//! E2eRecordHistoryFixture::upsert_used("row-1", row, &valence, valence::use_!(r"When **record history** needs to persist work, we **save E2e Record History Fixture** so the next step in that feature can continue with the latest values. People and services allowed for **record history** use this data for that workflow—not as a general export of unrelated personal fields.")).await?;
 //!
 //! // 2. Read — ACL-aware load across every RecordHistory implementor for source.
 //! let rows = history_for_source(&source, &valence).await?;

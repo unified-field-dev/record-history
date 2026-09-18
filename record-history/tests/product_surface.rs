@@ -154,7 +154,7 @@ fn page_require_session_happy_path() {
     let page = read_leptos("get_record_history_page.rs");
     assert!(
         page.contains("fn require_session")
-            && page.contains("Authentication required")
+            && page.contains("HISTORY_AUTH_REQUIRED_MSG")
             && page.contains("session_user_id()"),
         "get_record_history_page must fail closed without a session"
     );
