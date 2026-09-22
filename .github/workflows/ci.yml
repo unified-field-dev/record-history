@@ -95,6 +95,23 @@ jobs:
       - name: cargo test --doc (record-history-leptos)
         run: cargo test --doc -p record-history-leptos --features ssr,doctest-support
 
+  deny:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        with:
+          command: check
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - name: Security audit
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+
   e2e:
     runs-on: ubuntu-latest
     steps:
