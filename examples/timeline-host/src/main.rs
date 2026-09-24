@@ -151,7 +151,7 @@ async fn seed_fixture_actor(valence: &Valence) {
         now,
     )
     .expect("build user");
-    User::upsert_used(FIXTURE_ACTOR_ID, user, valence, valence::use_!(r"When the **timeline host demo** starts, we **save a made-up user account** so the sample history entries have someone to point at as the person who changed them. It holds only placeholder values in the demo's own in-memory database, is never displayed, and disappears when the demo stops."))
+    User::upsert(FIXTURE_ACTOR_ID, user, valence, valence::use_!(r"When the **timeline host demo** starts, we **save a made-up user account** so the sample history entries have someone to point at as the person who changed them. It holds only placeholder values in the demo's own in-memory database, is never displayed, and disappears when the demo stops."))
         .await
         .expect("upsert fixture actor");
 }
@@ -174,7 +174,7 @@ async fn upsert_fixture(
         Some(fixture_actor()),
     )
     .expect("new fixture");
-    E2eRecordHistoryFixture::upsert_used(row_id, row, valence, valence::use_!(r"When the **timeline host demo** starts, we **save a made-up history entry**, meaning one field change with its old value, new value, and time, so the demo's history timeline has something to show. It is placeholder data in the demo's in-memory database, and the demo's history endpoint returns it to signed-in demo users."))
+    E2eRecordHistoryFixture::upsert(row_id, row, valence, valence::use_!(r"When the **timeline host demo** starts, we **save a made-up history entry**, meaning one field change with its old value, new value, and time, so the demo's history timeline has something to show. It is placeholder data in the demo's in-memory database, and the demo's history endpoint returns it to signed-in demo users."))
         .await
         .expect("upsert fixture");
 }
@@ -183,7 +183,7 @@ async fn bootstrap_timeline() -> HostState {
     let valence = setup_valence().await;
     seed_fixture_actor(&valence).await;
     let source = E2eHistorySourceA::new("Timeline Source".into()).expect("source");
-    E2eHistorySourceA::upsert_used(SOURCE_ID, source, &valence, valence::use_!(r"When the **timeline host demo** starts, we **save one made-up record called Timeline Source** for the sample history entries to belong to, so the timeline has a record to be about. It is placeholder data in the demo's in-memory database, and only its id appears in the demo's output."))
+    E2eHistorySourceA::upsert(SOURCE_ID, source, &valence, valence::use_!(r"When the **timeline host demo** starts, we **save one made-up record called Timeline Source** for the sample history entries to belong to, so the timeline has a record to be about. It is placeholder data in the demo's in-memory database, and only its id appears in the demo's output."))
         .await
         .expect("upsert source");
 

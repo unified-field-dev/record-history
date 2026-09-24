@@ -70,14 +70,14 @@ async fn e2e_fixture_row_upsert_round_trips_on_sqlite_file_happy_path() {
             now,
         )
         .expect("user");
-        User::upsert_used("sqlite-fixture-actor", user, &valence, valence::use_!(r"**Test:** Fixture **User** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+        User::upsert("sqlite-fixture-actor", user, &valence, valence::use_!(r"**Test:** Fixture **User** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
             .await
             .expect("seed actor");
     }
 
     let source_rid = RecordId::new("e2e_history_source_a", "e2e-history-source-001");
     let source = E2eHistorySourceA::new("E2E Timeline Source".to_string()).expect("source new");
-    E2eHistorySourceA::upsert_used(source_rid.id(), source, &valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eHistorySourceA::upsert(source_rid.id(), source, &valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert source");
 
@@ -91,7 +91,7 @@ async fn e2e_fixture_row_upsert_round_trips_on_sqlite_file_happy_path() {
     )
     .expect("row new");
 
-    let upserted = E2eRecordHistoryFixture::upsert_used("e2e-fix-000", row, &valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let upserted = E2eRecordHistoryFixture::upsert("e2e-fix-000", row, &valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("fixture upsert e2e-fix-000");
 
@@ -99,7 +99,7 @@ async fn e2e_fixture_row_upsert_round_trips_on_sqlite_file_happy_path() {
     assert_eq!(upserted.field_name(), "name");
     assert_eq!(upserted.new_value(), "Office Supplies");
 
-    let loaded = E2eRecordHistoryFixture::get_used("e2e-fix-000", &valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let loaded = E2eRecordHistoryFixture::get("e2e-fix-000", &valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("get")
         .expect("row exists on disk-backed sqlite");

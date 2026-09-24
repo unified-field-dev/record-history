@@ -325,7 +325,7 @@ async fn user_delete_history_row_blocked_sad() {
     .await;
 
     let user_v = as_user(&valence, "delete-actor");
-    let err = E2eRecordHistoryFixture::delete_used("delete-blocked", &user_v, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** remove for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let err = E2eRecordHistoryFixture::delete("delete-blocked", &user_v, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** remove for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect_err("history rows must reject direct user delete");
     let msg = err.to_string().to_lowercase();
@@ -339,7 +339,7 @@ async fn user_delete_history_row_blocked_sad() {
         "expected delete-policy error, got: {err}"
     );
 
-    let still = E2eRecordHistoryFixture::get_used("delete-blocked", &valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** load for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let still = E2eRecordHistoryFixture::get("delete-blocked", &valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** load for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("get")
         .expect("row still present");

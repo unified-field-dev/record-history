@@ -67,7 +67,7 @@ async fn seed_user(id: &str, valence: &Valence) {
         now,
     )
     .expect("build e2e user");
-    User::upsert_used(id, user, valence, valence::use_!(r"**Test:** Fixture **User** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    User::upsert(id, user, valence, valence::use_!(r"**Test:** Fixture **User** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert e2e user");
 }
@@ -81,7 +81,7 @@ async fn ensure_history(
     hours_ago: i64,
 ) {
     // History rows block update (`always_block`). Re-seed must not upsert an existing row.
-    if E2eRecordHistoryFixture::get_used(row_id, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** load for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    if E2eRecordHistoryFixture::get(row_id, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** load for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("get history")
         .is_some()
@@ -97,7 +97,7 @@ async fn ensure_history(
         Some(RecordId::new("user", actor_id)),
     )
     .expect("history row");
-    E2eRecordHistoryFixture::upsert_used(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eRecordHistoryFixture::upsert(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("create history");
 }
@@ -110,7 +110,7 @@ async fn ensure_history_alt(
     actor_id: &str,
     hours_ago: i64,
 ) {
-    if E2eRecordHistoryFixtureAlt::get_used(row_id, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture Alt** load for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    if E2eRecordHistoryFixtureAlt::get(row_id, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture Alt** load for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("get alt history")
         .is_some()
@@ -126,7 +126,7 @@ async fn ensure_history_alt(
         Some(RecordId::new("user", actor_id)),
     )
     .expect("alt history row");
-    E2eRecordHistoryFixtureAlt::upsert_used(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture Alt** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eRecordHistoryFixtureAlt::upsert(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture Alt** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("create alt history");
 }
@@ -139,12 +139,12 @@ pub async fn seed_users_and_fixtures(system: &Valence) {
     let owned =
         E2eHistorySourceOwned::new("Owned Source".to_string(), E2E_OWNER_USER_ID.to_string())
             .expect("owned source");
-    E2eHistorySourceOwned::upsert_used(E2E_OWNED_SOURCE_ID, owned, system, valence::use_!(r"**Test:** Fixture **E2e History Source Owned** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eHistorySourceOwned::upsert(E2E_OWNED_SOURCE_ID, owned, system, valence::use_!(r"**Test:** Fixture **E2e History Source Owned** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert owned source");
 
     let public = E2eHistorySourceA::new("Public Source".to_string()).expect("public source");
-    E2eHistorySourceA::upsert_used(E2E_PUBLIC_SOURCE_ID, public, system, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eHistorySourceA::upsert(E2E_PUBLIC_SOURCE_ID, public, system, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert public source");
 
@@ -170,14 +170,14 @@ pub async fn seed_users_and_fixtures(system: &Valence) {
 
 async fn seed_empty_parent(system: &Valence) {
     let empty = E2eHistorySourceB::new("Empty Source".to_string()).expect("empty source");
-    E2eHistorySourceB::upsert_used(E2E_RECORD_HISTORY_EMPTY_SOURCE_ID, empty, system, valence::use_!(r"**Test:** Fixture **E2e History Source B** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eHistorySourceB::upsert(E2E_RECORD_HISTORY_EMPTY_SOURCE_ID, empty, system, valence::use_!(r"**Test:** Fixture **E2e History Source B** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert empty source");
 }
 
 async fn seed_multipage_parent(system: &Valence) {
     let source = E2eHistorySourceA::new("Multipage Source".to_string()).expect("multipage source");
-    E2eHistorySourceA::upsert_used(E2E_RECORD_HISTORY_SOURCE_ID, source, system, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eHistorySourceA::upsert(E2E_RECORD_HISTORY_SOURCE_ID, source, system, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert multipage source");
     let parent = RecordId::new("e2e_history_source_a", E2E_RECORD_HISTORY_SOURCE_ID);
@@ -197,7 +197,7 @@ async fn seed_multipage_parent(system: &Valence) {
 
 async fn seed_multikind_parent(system: &Valence) {
     let source = E2eHistorySourceA::new("Multikind Source".to_string()).expect("multikind source");
-    E2eHistorySourceA::upsert_used(E2E_MULTIKIND_SOURCE_ID, source, system, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eHistorySourceA::upsert(E2E_MULTIKIND_SOURCE_ID, source, system, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `seed` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert multikind source");
     let parent = RecordId::new("e2e_history_source_a", E2E_MULTIKIND_SOURCE_ID);

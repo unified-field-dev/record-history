@@ -65,7 +65,7 @@ fn trait_model_from(
     });
     serde_json::from_value(value)
         .map_err(valence::Error::serialization)
-        .map_err(|e| HistoryError::query_used(e, purpose))
+        .map_err(|e| HistoryError::query(e, purpose))
 }
 
 /// All history rows for a source `RecordId` across every registered
@@ -109,9 +109,9 @@ pub async fn history_for_source(
     for table in tables {
         let rows: Vec<HistoryRowWire> = QueryCore::new(table.to_string())
             .where_record("source".to_string(), predicate.clone())
-            .execute_used(valence, valence::use_!(r"When you **view a record's history**, we **search every table that stores change history** for entries about that record, loading what changed, the old and new values, when, and who made the change. These entries become the record's **timeline**, and this step only runs after we have confirmed you are allowed to read that record."))
+            .execute(valence, valence::use_!(r"When you **view a record's history**, we **search every table that stores change history** for entries about that record, loading what changed, the old and new values, when, and who made the change. These entries become the record's **timeline**, and this step only runs after we have confirmed you are allowed to read that record."))
             .await
-            .map_err(|e| HistoryError::query_used(e, purpose))?;
+            .map_err(|e| HistoryError::query(e, purpose))?;
         for row in rows {
             let id = row.id.clone().map(|rid| {
                 if rid.table() == table {

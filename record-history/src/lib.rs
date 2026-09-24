@@ -109,7 +109,7 @@
 //! # // platform's own fixture table (a product creates its own parent via
 //! # // the same generated Model::create / upsert its own schema exposes).
 //! # let parent = E2eHistorySourceA::new("Example parent".to_string())?;
-//! # E2eHistorySourceA::upsert_used("tag-1", parent, &valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only.")).await?;
+//! # E2eHistorySourceA::upsert("tag-1", parent, &valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only.")).await?;
 //! // Direct write — same Model::create / upsert a SideEffect would call.
 //! // Product code usually wraps this in SideEffect<Parent>::on_mutation.
 //! let source = RecordId::new("e2e_history_source_a", "tag-1");
@@ -121,9 +121,9 @@
 //!     chrono::Utc::now(),
 //!     None, // actor: None => timeline shows "System"
 //! )?;
-//! E2eRecordHistoryFixture::upsert_used("row-1", row, &valence, valence::use_!(r"When a record is changed, we **save one history entry** with the **field that changed, its old and new values, and when it changed**, so the record's timeline can list it later. No person is attached to this entry, so the timeline credits it to **System**.")).await?;
+//! E2eRecordHistoryFixture::upsert("row-1", row, &valence, valence::use_!(r"When a record is changed, we **save one history entry** with the **field that changed, its old and new values, and when it changed**, so the record's timeline can list it later. No person is attached to this entry, so the timeline credits it to **System**.")).await?;
 //!
-//! let stored = E2eRecordHistoryFixture::get_used("row-1", &valence, valence::use_!(r"To confirm the write worked, we **load the history entry back by its id** and compare its **field name** and the **record it belongs to** with what we saved. Only this check reads the entry, and nothing is displayed."))
+//! let stored = E2eRecordHistoryFixture::get("row-1", &valence, valence::use_!(r"To confirm the write worked, we **load the history entry back by its id** and compare its **field name** and the **record it belongs to** with what we saved. Only this check reads the entry, and nothing is displayed."))
 //!     .await?
 //!     .expect("row written");
 //! assert_eq!(stored.field_name(), "name");
@@ -188,7 +188,7 @@
 //! # async fn main() -> anyhow::Result<()> {
 //! # let valence = doctest_valence().await;
 //! # let parent = E2eHistorySourceA::new("Example parent".to_string())?;
-//! # E2eHistorySourceA::upsert_used("tag-2", parent, &valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only.")).await?;
+//! # E2eHistorySourceA::upsert("tag-2", parent, &valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only.")).await?;
 //! # let source = RecordId::new("e2e_history_source_a", "tag-2");
 //! // 1. Write — same generated Model path a side effect would call.
 //! let row = E2eRecordHistoryFixture::new(
@@ -199,7 +199,7 @@
 //!     chrono::Utc::now(),
 //!     None,
 //! )?;
-//! E2eRecordHistoryFixture::upsert_used("row-1", row, &valence, valence::use_!(r"When a record is changed, we **save one history entry** with the **field that changed, its old and new values, and when it changed**, so the record's timeline can list it later. No person is attached to this entry, so the timeline credits it to **System**.")).await?;
+//! E2eRecordHistoryFixture::upsert("row-1", row, &valence, valence::use_!(r"When a record is changed, we **save one history entry** with the **field that changed, its old and new values, and when it changed**, so the record's timeline can list it later. No person is attached to this entry, so the timeline credits it to **System**.")).await?;
 //!
 //! // 2. Read — ACL-aware load across every RecordHistory implementor for source.
 //! let rows = history_for_source(&source, &valence).await?;

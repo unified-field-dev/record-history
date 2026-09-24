@@ -393,8 +393,8 @@ fn resolve_source_doc_no_longer_ambiguous_sad() {
          a generic dispatch point"
     );
     assert!(
-        resolve.contains("Model::get_used"),
-        "resolve.rs doc comment must point products at their own Model::get_used"
+        resolve.contains("Model::get"),
+        "resolve.rs doc comment must point products at their own Model::get"
     );
 }
 

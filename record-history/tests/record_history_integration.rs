@@ -33,7 +33,7 @@ async fn create_fixture_row_round_trips() {
     )
     .await;
 
-    let loaded = E2eRecordHistoryFixture::get_used("fixture-a-1", &valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** load for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let loaded = E2eRecordHistoryFixture::get("fixture-a-1", &valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** load for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("get")
         .expect("row exists");
@@ -258,7 +258,7 @@ async fn where_is_fixture_refinement() {
     )
     .await;
 
-    let rows: Vec<E2eRecordHistoryFixture> = RecordHistoryQueryAll::query_used(&valence, valence::use_!(r"**Test:** Fixture **Record History Query All** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let rows: Vec<E2eRecordHistoryFixture> = RecordHistoryQueryAll::query(&valence, valence::use_!(r"**Test:** Fixture **Record History Query All** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .where_source(valence::RecordPredicate::Equals(source))
         .where_is_e2e_record_history_fixture()
         .await
@@ -288,7 +288,7 @@ async fn actor_connection_optional() {
     )
     .await;
 
-    let with_actor = E2eRecordHistoryFixture::get_used("fixture-with-actor", &valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** load for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let with_actor = E2eRecordHistoryFixture::get("fixture-with-actor", &valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** load for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("get")
         .expect("row");

@@ -43,11 +43,11 @@ async fn history_source_query_all_refine_a_vs_b_happy_path() {
     let valence = setup_valence().await;
     seed_sources(&valence).await;
 
-    let a_rows: Vec<E2eHistorySourceA> = HistorySourceQueryAll::query_used(&valence, valence::use_!(r"**Test:** Fixture **History Source Query All** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let a_rows: Vec<E2eHistorySourceA> = HistorySourceQueryAll::query(&valence, valence::use_!(r"**Test:** Fixture **History Source Query All** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .where_is_e2e_history_source_a()
         .await
         .expect("refine a");
-    let b_rows: Vec<E2eHistorySourceB> = HistorySourceQueryAll::query_used(&valence, valence::use_!(r"**Test:** Fixture **History Source Query All** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let b_rows: Vec<E2eHistorySourceB> = HistorySourceQueryAll::query(&valence, valence::use_!(r"**Test:** Fixture **History Source Query All** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .where_is_e2e_history_source_b()
         .await
         .expect("refine b");
@@ -77,14 +77,14 @@ async fn direct_where_source_and_where_is_kind_happy_path() {
     )
     .await;
 
-    let direct: Vec<_> = RecordHistoryQueryAll::query_used(&valence, valence::use_!(r"**Test:** Fixture **Record History Query All** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let direct: Vec<_> = RecordHistoryQueryAll::query(&valence, valence::use_!(r"**Test:** Fixture **Record History Query All** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .where_source(valence::RecordPredicate::Equals(source.clone()))
         .where_is_e2e_record_history_fixture()
         .order_by_changed_at(valence::query::SortDirection::Desc)
         .await
         .expect("direct");
 
-    let hop: Vec<_> = E2eHistorySourceA::query_used(&valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    let hop: Vec<_> = E2eHistorySourceA::query(&valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .where_id(valence::StringPredicate::Equals(
             TEST_SOURCE_A_ID.to_string(),
         ))

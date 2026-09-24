@@ -125,11 +125,11 @@ pub fn as_user(base: &Valence, user_id: &str) -> Valence {
 
 pub async fn seed_sources(valence: &Valence) {
     let a = E2eHistorySourceA::new("Source A".to_string()).expect("new source a");
-    E2eHistorySourceA::upsert_used(TEST_SOURCE_A_ID, a, valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eHistorySourceA::upsert(TEST_SOURCE_A_ID, a, valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert source a");
     let b = E2eHistorySourceB::new("Source B".to_string()).expect("new source b");
-    E2eHistorySourceB::upsert_used(TEST_SOURCE_B_ID, b, valence, valence::use_!(r"**Test:** Fixture **E2e History Source B** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eHistorySourceB::upsert(TEST_SOURCE_B_ID, b, valence, valence::use_!(r"**Test:** Fixture **E2e History Source B** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert source b");
 }
@@ -138,7 +138,7 @@ pub async fn seed_owned_source(valence: &Valence, owner_user_id: &str) {
     seed_user(owner_user_id, "owner@example.com", valence).await;
     let owned = E2eHistorySourceOwned::new("Owned Source".to_string(), owner_user_id.to_string())
         .expect("new owned source");
-    E2eHistorySourceOwned::upsert_used(TEST_OWNED_SOURCE_ID, owned, valence, valence::use_!(r"**Test:** Fixture **E2e History Source Owned** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eHistorySourceOwned::upsert(TEST_OWNED_SOURCE_ID, owned, valence, valence::use_!(r"**Test:** Fixture **E2e History Source Owned** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert owned source");
 }
@@ -159,7 +159,7 @@ pub async fn seed_user(id: &str, email: &str, valence: &Valence) {
         now,
     )
     .expect("build user");
-    User::upsert_used(id, user, valence, valence::use_!(r"**Test:** Fixture **User** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only.")).await.expect("upsert user");
+    User::upsert(id, user, valence, valence::use_!(r"**Test:** Fixture **User** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only.")).await.expect("upsert user");
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -184,7 +184,7 @@ pub async fn create_fixture_row(
         Some(actor),
     )
     .expect("new fixture row");
-    E2eRecordHistoryFixture::upsert_used(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eRecordHistoryFixture::upsert(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert fixture row")
 }
@@ -212,7 +212,7 @@ pub async fn create_fixture_alt_row(
         Some(actor),
     )
     .expect("new fixture alt row");
-    E2eRecordHistoryFixtureAlt::upsert_used(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture Alt** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eRecordHistoryFixtureAlt::upsert(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture Alt** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert fixture alt row")
 }
@@ -278,7 +278,7 @@ pub async fn query_fixture_ordered(
 ) -> Vec<E2eRecordHistoryFixture> {
     use record_history::RecordHistoryQueryRefineE2eRecordHistoryFixture;
 
-    RecordHistoryQueryAll::query_used(valence, valence::use_!(r"**Test:** Fixture **Record History Query All** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    RecordHistoryQueryAll::query(valence, valence::use_!(r"**Test:** Fixture **Record History Query All** list for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .where_source(valence::RecordPredicate::Equals(source.clone()))
         .where_is_e2e_record_history_fixture()
         .order_by_changed_at(direction)

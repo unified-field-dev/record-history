@@ -81,12 +81,12 @@ pub async fn seed_user(id: &str, valence: &Valence) {
         now,
     )
     .expect("build user");
-    User::upsert_used(id, user, valence, valence::use_!(r"**Test:** Fixture **User** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only.")).await.expect("upsert user");
+    User::upsert(id, user, valence, valence::use_!(r"**Test:** Fixture **User** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only.")).await.expect("upsert user");
 }
 
 pub async fn seed_source(valence: &Valence) {
     let source = E2eHistorySourceA::new("RHL Test Source".to_string()).expect("new source");
-    E2eHistorySourceA::upsert_used(TEST_SOURCE_ID, source, valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eHistorySourceA::upsert(TEST_SOURCE_ID, source, valence, valence::use_!(r"**Test:** Fixture **E2e History Source A** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert source");
 }
@@ -110,7 +110,7 @@ pub async fn create_fixture_row(
         actor,
     )
     .expect("new fixture row");
-    E2eRecordHistoryFixture::upsert_used(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eRecordHistoryFixture::upsert(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert fixture row");
 }
@@ -134,7 +134,7 @@ pub async fn create_fixture_alt_row(
         actor,
     )
     .expect("new fixture alt row");
-    E2eRecordHistoryFixtureAlt::upsert_used(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture Alt** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
+    E2eRecordHistoryFixtureAlt::upsert(row_id, row, valence, valence::use_!(r"**Test:** Fixture **E2e Record History Fixture Alt** save for `tests` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."))
         .await
         .expect("upsert fixture alt row");
 }
