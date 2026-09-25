@@ -294,7 +294,10 @@ async fn actor_connection_optional() {
         .expect("row");
     assert_eq!(with_actor.actor(), Some(&actor_rid));
     let user = with_actor
-        .get_actor(&valence)
+        .get_actor(
+            &valence,
+            valence::use_!(r"**Test:** Fixture **get_actor** hop for `tests` so the suite can assert the linked user. CI and developers running the suite only."),
+        )
         .await
         .expect("get_actor")
         .expect("user linked");

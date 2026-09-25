@@ -26,7 +26,7 @@ pub async fn resolve_actor_presentation(
     match User::get(&bare_user_id, valence, valence::use_!(r"When the history timeline shows **who made a change**, we **load that person's account by its id**, using your permissions, so we can find their **display name** and a link to their profile page. If you are not allowed to read the account or it no longer exists, the entry shows a generic User label with a short id instead. Only the name or label and the link appear on the page; the account itself, including the email, is **never shown**.")).await {
         Ok(Some(user)) => {
             let name = user
-                .get_profile(valence, valence::use_!(r#"When the history timeline shows **who made a change**, we **follow the profile link** from that person's account so we can show their **display name**. Only the name appears on the timeline entry for viewers who may read the profile."#))
+                .get_profile(valence, valence::use_!(r"When the history timeline shows **who made a change**, we **follow the profile link** from that person's account so we can show their **display name**. Only the name appears on the timeline entry for viewers who may read the profile."))
                 .await
                 .unwrap_or_default()
                 .into_iter()

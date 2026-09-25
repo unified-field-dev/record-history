@@ -104,7 +104,10 @@ async fn get_record_history_isolated_per_source() {
         .expect("get")
         .expect("a");
     assert!(source_a
-        .get_record_history(&valence)
+        .get_record_history(
+            &valence,
+            valence::use_!(r"**Test:** Fixture **get_record_history** nav for `tests` so the suite can assert HasMany isolation. CI and developers running the suite only."),
+        )
         .await
         .expect("q")
         .is_empty());

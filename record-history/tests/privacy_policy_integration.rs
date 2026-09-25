@@ -51,7 +51,7 @@ async fn fixture_history_create_is_system_only_sad() {
         "e2e_record_history_fixture",
         &history_id,
         &system,
-        valence::use_!(r#"**Test:** Fixture row load for `privacy_policy_integration` so the suite can assert Valence privacy policy allow and deny outcomes. CI and developers running the suite only."#),
+        valence::use_!(r"**Test:** Fixture row load for `privacy_policy_integration` so the suite can assert Valence privacy policy allow and deny outcomes. CI and developers running the suite only."),
     )
     .await
     .expect("raw get")
@@ -119,7 +119,7 @@ async fn fixture_history_read_defers_to_parent_authenticated_happy_path() {
         "e2e_record_history_fixture",
         &history_id,
         &system,
-        valence::use_!(r#"**Test:** Fixture row load for `privacy_policy_integration` so the suite can assert Valence privacy policy allow and deny outcomes. CI and developers running the suite only."#),
+        valence::use_!(r"**Test:** Fixture row load for `privacy_policy_integration` so the suite can assert Valence privacy policy allow and deny outcomes. CI and developers running the suite only."),
     )
     .await
     .expect("raw get")
