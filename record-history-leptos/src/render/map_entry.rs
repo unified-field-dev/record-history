@@ -31,7 +31,8 @@ pub fn history_row_view_to_entry(row: HistoryRowView) -> HistoryEntry {
     }
 }
 
-/// Map a page of [`HistoryRowView`] onto Orbital entries, preserving paging metadata.
+/// Map a page of [`HistoryRowView`] onto Orbital entries, preserving paging metadata
+/// (including `next_cursor`).
 #[must_use]
 pub fn map_history_page(page: Page<HistoryRowView>) -> Page<HistoryEntry> {
     Page {
@@ -43,6 +44,7 @@ pub fn map_history_page(page: Page<HistoryRowView>) -> Page<HistoryEntry> {
         has_more: page.has_more,
         total_count: page.total_count,
         next_request_offset: page.next_request_offset,
+        next_cursor: page.next_cursor,
     }
 }
 
@@ -198,12 +200,14 @@ mod tests {
             has_more: true,
             total_count: Some(42),
             next_request_offset: Some(25),
+            next_cursor: Some("token".into()),
         };
         let mapped = map_history_page(page);
         assert_eq!(mapped.items.len(), 1);
         assert!(mapped.has_more);
         assert_eq!(mapped.total_count, Some(42));
         assert_eq!(mapped.next_request_offset, Some(25));
+        assert_eq!(mapped.next_cursor.as_deref(), Some("token"));
         assert_eq!(mapped.items[0].kind, "tag_history");
     }
 }

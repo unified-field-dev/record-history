@@ -208,8 +208,10 @@
 //! # }
 //! ```
 //!
-//! On success you hold [`RecordHistoryModel`] rows (newest-first ordering is up
-//! to the caller when using raw query builders). Parent denials return
+//! On success you hold [`RecordHistoryModel`] rows, newest first, capped at
+//! [`MAX_HISTORY_SCAN`] (raw query builders leave ordering to the caller). For
+//! longer histories, [`history_for_source_page`] reads one page at a time and
+//! returns a [`HistoryKey`] to continue from. Parent denials return
 //! [`HistoryError::AccessDenied`] with Display [`HISTORY_ACCESS_DENIED`]. Query
 //! failures map to [`HistoryError::Query`]. Format helpers never fail. Sibling
 //! `record-history-leptos` maps SSR failures to opaque `ServerFnError`
@@ -261,8 +263,8 @@ pub use generated::{
     RecordHistoryQueryRefineE2eRecordHistoryFixtureAlt,
 };
 pub use source::{
-    authorize_history_source_read, history_for_source, resolve_history_source,
-    ResolvedHistorySource,
+    authorize_history_source_read, history_for_source, history_for_source_page,
+    resolve_history_source, HistoryKey, HistoryPage, ResolvedHistorySource, MAX_HISTORY_SCAN,
 };
 pub use write::{
     history_created, history_deleted, history_edge_added, history_edge_removed,

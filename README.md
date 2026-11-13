@@ -13,7 +13,8 @@ paginated Leptos `HistoryTimeline` for detail pages.
 
 - **Domain (`record-history`)** — trait schemas, `RecordHistoryQueryAll`,
   `history_for_source`, formatting, row identity for renderer routing
-- **Timeline UI (`record-history-leptos`)** — SSR `get_record_history_page` +
+- **Timeline UI (`record-history-leptos`)** — SSR `get_record_history_page` /
+  `get_record_history_page_by_cursor` +
   embeddable `HistoryTimeline`
 - **Composition** — product tables opt in with `traits: [RecordHistory]`;
   parents use `traits: [HistorySource]`; writes usually go through Valence

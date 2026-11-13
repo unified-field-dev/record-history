@@ -82,26 +82,42 @@
 //!
 //! ## Paginated SSR fetch
 //!
-//! [`get_record_history_page`] is the SSR page fetch behind [`HistoryTimeline`].
-//! Call it inside `#[server]` / Higgs request handlers when the request needs a
-//! clamped page of [`HistoryRowView`] without mounting the timeline. Client
-//! `limit` / `offset` / `kinds` are sanitized before query.
+//! [`get_record_history_page_by_cursor`] is the SSR page fetch behind
+//! [`HistoryTimeline`]; [`get_record_history_page`] is the same fetch by offset
+//! only. Call either inside `#[server]` / Higgs request handlers when the
+//! request needs a clamped page of [`HistoryRowView`] without mounting the
+//! timeline. Client `limit` / `offset` / `kinds` are sanitized before query.
+//! Pass the previous page's `next_cursor` as `cursor` to continue past the
+//! offset cap ([`MAX_HISTORY_PAGE_OFFSET`]).
 //!
 //! **Prerequisites:** `ssr` feature; Higgs request context with an authenticated
 //! session; a `source` [`RecordId`] the actor may read.
 //!
 //! ```rust,ignore
-//! use record_history_leptos::{get_record_history_page, RECORD_HISTORY_PAGE_SIZE};
+//! use record_history_leptos::{get_record_history_page_by_cursor, RECORD_HISTORY_PAGE_SIZE};
 //! use valence::RecordId;
 //!
-//! let page = get_record_history_page(
+//! let source = RecordId::new("tag", tag_id);
+//! let kinds = Some(vec!["tag_history".into()]);
+//! let first = get_record_history_page_by_cursor(
 //!     0,
 //!     RECORD_HISTORY_PAGE_SIZE,
-//!     RecordId::new("tag", tag_id),
-//!     Some(vec!["tag_history".into()]),
+//!     source.clone(),
+//!     kinds.clone(),
+//!     None,
 //! )
 //! .await?;
-//! assert!(!page.items.is_empty() || !page.has_more);
+//! if first.has_more {
+//!     let next_offset = first.next_request_offset.unwrap_or(RECORD_HISTORY_PAGE_SIZE);
+//!     let second = get_record_history_page_by_cursor(
+//!         next_offset,
+//!         RECORD_HISTORY_PAGE_SIZE,
+//!         source,
+//!         kinds,
+//!         first.next_cursor,
+//!     )
+//!     .await?;
+//! }
 //! ```
 //!
 //! On success you hold an [`orbital_paging::Page`] of [`HistoryRowView`]. Valence
@@ -212,9 +228,12 @@ pub use constants::{
     E2E_RECORD_HISTORY_EMPTY_SOURCE_ID, E2E_RECORD_HISTORY_KIND, E2E_RECORD_HISTORY_ROW_COUNT,
     E2E_RECORD_HISTORY_SOURCE_ID, RECORD_HISTORY_PAGE_SIZE,
 };
+#[cfg(feature = "ssr")]
+pub use get_record_history_page::load_history_page;
 pub use get_record_history_page::{
     clamp_history_page_limit, clamp_history_page_offset, get_record_history_page,
-    sanitize_kind_filter, MAX_HISTORY_PAGE_LIMIT, MAX_HISTORY_PAGE_OFFSET,
+    get_record_history_page_by_cursor, sanitize_kind_filter, MAX_HISTORY_PAGE_LIMIT,
+    MAX_HISTORY_PAGE_OFFSET,
 };
 
 #[cfg(feature = "e2e-harness")]
