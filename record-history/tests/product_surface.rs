@@ -91,8 +91,8 @@ fn timeline_drop_testid_or_fetch_sad_path() {
         "dropping record-history-timeline breaks host / future Playwright parity"
     );
     assert!(
-        timeline.contains("get_record_history_page"),
-        "timeline must bind get_record_history_page for pagination"
+        timeline.contains("get_record_history_page_by_cursor"),
+        "timeline must bind get_record_history_page_by_cursor for pagination"
     );
     assert!(
         !timeline.contains("unimplemented!"),
@@ -164,8 +164,9 @@ fn page_require_session_happy_path() {
     );
     assert!(
         page.contains("get_record_history_page")
-            && page.contains("#[server(GetRecordHistoryPage)]"),
-        "page server fn must stay registered as GetRecordHistoryPage"
+            && page.contains("#[server(GetRecordHistoryPage)]")
+            && page.contains("#[server(GetRecordHistoryPageByCursor)]"),
+        "page server fns must stay registered as GetRecordHistoryPage / GetRecordHistoryPageByCursor"
     );
 }
 
@@ -197,7 +198,7 @@ fn page_clamps_limit_offset_and_kinds_happy_path() {
         "clamp_history_page_limit(limit)",
         "clamp_history_page_offset(offset)",
         "sanitize_kind_filter(kinds)",
-        "MAX_HISTORY_SCAN",
+        "PageCursor::from_request",
     ] {
         assert!(
             page.contains(needle),

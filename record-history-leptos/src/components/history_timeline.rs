@@ -1,7 +1,7 @@
 //! Paginated audit timeline for a parent `HistorySource` record.
 
 use crate::constants::RECORD_HISTORY_PAGE_SIZE;
-use crate::get_record_history_page;
+use crate::get_record_history_page_by_cursor;
 use crate::render::map_history_page;
 use leptos::prelude::*;
 use orbital::primitives::{MessageBar, MessageBarIntent};
@@ -20,7 +20,7 @@ fn is_history_acl_error(err: &ServerFnError) -> bool {
 
 /// Self-loading audit timeline for a parent record (`source`).
 ///
-/// Fetches pages via [`get_record_history_page`], maps rows onto Orbital
+/// Fetches pages via [`get_record_history_page_by_cursor`], maps rows onto Orbital
 /// [`HistoryEntry`](orbital_history::HistoryEntry) values, and renders with
 /// [`orbital_history::HistoryTimeline`]. Pass `kind_filter` to narrow to specific
 /// Valence table names; omit to include all `RecordHistory` implementors for the
@@ -123,7 +123,15 @@ pub fn HistoryTimeline(
         let sid = sid.clone();
         let kinds_arg = kinds_arg.clone();
         async move {
-            match get_record_history_page(page.offset, page.limit, sid, kinds_arg).await {
+            match get_record_history_page_by_cursor(
+                page.offset,
+                page.limit,
+                sid,
+                kinds_arg,
+                page.cursor,
+            )
+            .await
+            {
                 Ok(page) => {
                     access_denied.set(false);
                     load_failed.set(false);

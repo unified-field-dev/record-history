@@ -89,3 +89,7 @@ required-features = ["ssr"]
 [[test]]
 name = "acl_message_sync"
 required-features = ["ssr"]
+
+[[test]]
+name = "history_page_cursor_integration"
+required-features = ["ssr"]

@@ -4,7 +4,8 @@ Audited model host: seed fixture mutations, query via `history_for_source`,
 format timeline lines under protected **`/history`**.
 
 Production Leptos hosts embed `<HistoryTimeline />` on detail pages; the SSR
-fetch (`GetRecordHistoryPage`) requires an authenticated session. This example
+fetch (`GetRecordHistoryPageByCursor`, or offset-only `GetRecordHistoryPage`)
+requires an authenticated session. This example
 proves fixture writes + `history_for_source` + `format_line` without the
 SSR/WASM / Orbital graph. The oneshot path `/history` is a teaching stand-in
 for a protected host API; the embed surface stays `HistoryTimeline` +

@@ -2,7 +2,8 @@
 
 Paginated Leptos `HistoryTimeline` on top of the `record-history` domain crate.
 
-Embed on detail pages; pages load via SSR `get_record_history_page` and render with
+Embed on detail pages; pages load via SSR `get_record_history_page_by_cursor`
+(`get_record_history_page` is the offset-only form) and render with
 Orbital timeline chrome. Optional `HistoryRenderers` register per-kind overrides.
 
 ## Documentation

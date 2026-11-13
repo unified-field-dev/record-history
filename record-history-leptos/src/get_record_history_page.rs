@@ -7,13 +7,26 @@
 // functions would break the `#[server]` macro's single-signature contract.
 #![allow(clippy::unused_async_trait_impl)]
 
+//! Paged history rows for [`crate::HistoryTimeline`], newest first.
+//!
+//! [`get_record_history_page`] pages by offset only (its signature predates
+//! cursors). [`get_record_history_page_by_cursor`] adds `cursor`:
+//!
+//! - **Cursor path:** a `cursor` from the previous page's `next_cursor` that
+//!   decodes for this record, kind filter and page size continues after that
+//!   page's last entry (a `record_history::HistoryKey`). `offset` is ignored, so
+//!   [`MAX_HISTORY_PAGE_OFFSET`] does not limit how far back a reader can go.
+//! - **Offset path:** no cursor, or a stale, foreign or malformed one. `offset`
+//!   is clamped to [`MAX_HISTORY_PAGE_OFFSET`] and the newest `offset` entries
+//!   are skipped.
+//!
+//! Both paths return `next_cursor` when `has_more`. `total_count` is set only
+//! on the last page, where the count is known without another read.
+
 use crate::render::HistoryRowView;
 use leptos::prelude::*;
 use orbital_paging::Page;
 use valence::RecordId;
-
-#[cfg(feature = "ssr")]
-use record_history::RecordHistoryModel;
 
 /// Maximum page size accepted by [`get_record_history_page`].
 ///
@@ -21,12 +34,8 @@ use record_history::RecordHistoryModel;
 /// [`crate::RECORD_HISTORY_PAGE_SIZE`] (25).
 pub const MAX_HISTORY_PAGE_LIMIT: u32 = 50;
 
-/// Maximum zero-based `offset` accepted by [`get_record_history_page`].
+/// Maximum zero-based `offset` accepted by [`get_record_history_page`] on the offset path.
 pub const MAX_HISTORY_PAGE_OFFSET: u32 = 10_000;
-
-/// Hard cap on rows scanned when counting or post-filtering by `kinds`.
-#[cfg(feature = "ssr")]
-const MAX_HISTORY_SCAN: u32 = 10_000;
 
 /// Maximum number of kind-filter table names accepted from the client.
 const MAX_KIND_FILTER_LEN: usize = 32;
@@ -69,10 +78,12 @@ pub fn sanitize_kind_filter(kinds: Option<Vec<String>>) -> Option<Vec<String>> {
     }
 }
 
-/// Paginated history rows for [`crate::HistoryTimeline`] (newest first).
+/// One page of a record's history, newest first, by `offset`.
 ///
 /// Always `async` because the `#[server]` macro requires it; the SSR body
-/// awaits, while the non-SSR stub returns immediately.
+/// awaits, while the non-SSR stub returns immediately. Takes the offset path
+/// only; the returned page still carries `next_cursor`, which
+/// [`get_record_history_page_by_cursor`] accepts for the next page.
 ///
 /// ## Errors
 ///
@@ -83,8 +94,8 @@ pub fn sanitize_kind_filter(kinds: Option<Vec<String>>) -> Option<Vec<String>> {
 /// ## Security
 ///
 /// Requires an authenticated session **and** Read authorization on the source
-/// parent record ([`record_history::history_for_source`]). Session presence alone
-/// is not enough. Missing, unsupported, and parent-read denials return
+/// parent record ([`record_history::history_for_source_page`]). Session presence
+/// alone is not enough. Missing, unsupported, and parent-read denials return
 /// [`record_history::HISTORY_ACCESS_DENIED`]. Client `limit` / `offset` /
 /// `kinds` are clamped before paging.
 #[server(GetRecordHistoryPage)]
@@ -100,92 +111,7 @@ pub async fn get_record_history_page(
 ) -> Result<Page<HistoryRowView>, ServerFnError> {
     #[cfg(feature = "ssr")]
     {
-        use crate::server::into_history_row_view;
-        use record_history::RecordHistoryFields;
-
-        let ctx = higgs::Higgs::from_request().await?;
-        require_session(&ctx)?;
-
-        #[cfg(feature = "e2e-harness")]
-        if crate::e2e_harness::e2e_history_load_fault_active() {
-            return Err(client_err());
-        }
-
-        let v = ctx.valence().map_err(|e| {
-            tracing::error!(error = %e, operation = "get_record_history_page", "valence from request");
-            client_err()
-        })?;
-
-        tracing::debug!(
-            operation = "get_record_history_page",
-            table = source.table(),
-            record_id = source.id(),
-            "paging history"
-        );
-
-        // Refined per-table queries via history_for_source (parent ACL first).
-        // Trait-union projection misses datetime_unix on mem/SQLite.
-        let mut rows = match record_history::history_for_source(&source, &v).await {
-            Ok(rows) => rows,
-            Err(record_history::HistoryError::AccessDenied { .. }) => {
-                return Err(ServerFnError::new(record_history::HISTORY_ACCESS_DENIED));
-            }
-            Err(e) => {
-                tracing::error!(
-                    error = %e,
-                    operation = "get_record_history_page",
-                    "history_for_source"
-                );
-                return Err(client_err());
-            }
-        };
-
-        let limit = clamp_history_page_limit(limit);
-        let offset = clamp_history_page_offset(offset);
-        let kinds = sanitize_kind_filter(kinds);
-
-        rows.sort_by(|a, b| b.changed_at().cmp(a.changed_at()));
-        if let Some(kinds) = kinds.as_deref() {
-            rows.retain(|r| row_kind_matches(r, kinds));
-        }
-        if rows.len() > MAX_HISTORY_SCAN as usize {
-            rows.truncate(MAX_HISTORY_SCAN as usize);
-        }
-
-        let total_rows = rows.len() as u64;
-        let start = offset as usize;
-        let fetch_n = (limit as usize).saturating_add(1);
-        let page_rows: Vec<_> = rows.into_iter().skip(start).take(fetch_n).collect();
-        let db_rows_fetched = page_rows.len() as u32;
-
-        let mut views = Vec::with_capacity(page_rows.len());
-        for model in page_rows {
-            views.push(into_history_row_view(model, &v).await.map_err(|e| {
-                tracing::error!(
-                    error = %e,
-                    operation = "get_record_history_page",
-                    "map history row"
-                );
-                client_err()
-            })?);
-        }
-
-        let limit_usize = limit as usize;
-        if views.len() > limit_usize {
-            views.truncate(limit_usize);
-        }
-
-        let items_returned = views.len() as u32;
-        let next_request_offset = offset.saturating_add(db_rows_fetched);
-        let has_more =
-            db_rows_fetched > limit || offset.saturating_add(items_returned) < total_rows as u32;
-
-        Ok(Page {
-            items: views,
-            has_more,
-            total_count: Some(total_rows),
-            next_request_offset: Some(next_request_offset),
-        })
+        serve_history_page(offset, limit, source, kinds, None).await
     }
 
     #[cfg(not(feature = "ssr"))]
@@ -195,6 +121,175 @@ pub async fn get_record_history_page(
             "GetRecordHistoryPage requires SSR".into(),
         ))
     }
+}
+
+/// Session check, argument clamps and request actor for both server fns.
+#[cfg(feature = "ssr")]
+async fn serve_history_page(
+    offset: u32,
+    limit: u32,
+    source: RecordId,
+    kinds: Option<Vec<String>>,
+    cursor: Option<String>,
+) -> Result<Page<HistoryRowView>, ServerFnError> {
+    let ctx = higgs::Higgs::from_request().await?;
+    require_session(&ctx)?;
+
+    #[cfg(feature = "e2e-harness")]
+    if crate::e2e_harness::e2e_history_load_fault_active() {
+        return Err(client_err());
+    }
+
+    let limit = clamp_history_page_limit(limit);
+    let offset = clamp_history_page_offset(offset);
+    let kinds = sanitize_kind_filter(kinds);
+
+    let v = ctx.valence().map_err(|e| {
+        tracing::error!(error = %e, operation = "get_record_history_page", "valence from request");
+        client_err()
+    })?;
+
+    load_history_page(&source, &v, offset, limit, kinds.as_deref(), cursor).await
+}
+
+/// One page of a record's history, newest first, continued by `cursor`.
+///
+/// Same as [`get_record_history_page`] plus `cursor`: pass the previous page's
+/// `next_cursor` to continue after it, past [`MAX_HISTORY_PAGE_OFFSET`]. A
+/// missing, stale or malformed cursor pages by `offset`. [`crate::HistoryTimeline`]
+/// loads its pages through this function.
+///
+/// ## Errors
+///
+/// As [`get_record_history_page`].
+///
+/// ## Security
+///
+/// As [`get_record_history_page`]; a cursor grants nothing.
+#[server(GetRecordHistoryPageByCursor)]
+pub async fn get_record_history_page_by_cursor(
+    /// Zero-based index of the first history row to return (offset path only).
+    offset: u32,
+    /// Maximum number of history rows to return.
+    limit: u32,
+    /// Record whose history should be listed.
+    source: RecordId,
+    /// Optional set of history entry kinds to restrict results to.
+    kinds: Option<Vec<String>>,
+    /// The previous page's `next_cursor`; `None` pages by `offset`.
+    cursor: Option<String>,
+) -> Result<Page<HistoryRowView>, ServerFnError> {
+    #[cfg(feature = "ssr")]
+    {
+        serve_history_page(offset, limit, source, kinds, cursor).await
+    }
+
+    #[cfg(not(feature = "ssr"))]
+    {
+        let _ = (offset, limit, source, kinds, cursor);
+        Err(ServerFnError::ServerError(
+            "GetRecordHistoryPageByCursor requires SSR".into(),
+        ))
+    }
+}
+
+/// The body of [`get_record_history_page`] and [`get_record_history_page_by_cursor`]
+/// after session and argument checks.
+///
+/// `offset`, `limit` and `kinds` must already be clamped with
+/// [`clamp_history_page_offset`], [`clamp_history_page_limit`] and
+/// [`sanitize_kind_filter`]. `valence` carries the request actor; parent Read
+/// is checked here through [`record_history::history_for_source_page`].
+///
+/// ## Errors
+///
+/// [`record_history::HISTORY_ACCESS_DENIED`] when the parent cannot be read;
+/// `Failed to load record history` for any other failure.
+#[cfg(feature = "ssr")]
+pub async fn load_history_page(
+    source: &RecordId,
+    v: &valence::Valence,
+    offset: u32,
+    limit: u32,
+    kinds: Option<&[String]>,
+    cursor: Option<String>,
+) -> Result<Page<HistoryRowView>, ServerFnError> {
+    use crate::server::into_history_row_view;
+    use orbital_paging::{PageCursor, PageRequest};
+
+    tracing::debug!(
+        operation = "get_record_history_page",
+        table = source.table(),
+        record_id = source.id(),
+        cursor = cursor.is_some(),
+        "paging history"
+    );
+
+    let request = PageRequest::new(offset, limit).with_cursor(cursor);
+    let scope = history_cursor_scope(source, kinds);
+    let resumed = PageCursor::from_request(&request, &scope).and_then(|c| {
+        Some((
+            c.position,
+            record_history::HistoryKey::parse(c.key.as_deref()?)?,
+        ))
+    });
+    // Rows already shown before this page: the cursor's count, or the offset.
+    let (before, after, skip) = match &resumed {
+        Some((position, key)) => (*position, Some(key), 0),
+        None => (u64::from(offset), None, offset),
+    };
+
+    let page =
+        match record_history::history_for_source_page(source, v, after, skip, limit, kinds).await {
+            Ok(page) => page,
+            Err(record_history::HistoryError::AccessDenied { .. }) => {
+                return Err(ServerFnError::new(record_history::HISTORY_ACCESS_DENIED));
+            }
+            Err(e) => {
+                tracing::error!(
+                    error = %e,
+                    operation = "get_record_history_page",
+                    "history_for_source_page"
+                );
+                return Err(client_err());
+            }
+        };
+
+    let mut items = Vec::with_capacity(page.rows.len());
+    for model in page.rows {
+        items.push(into_history_row_view(model, v).await.map_err(|e| {
+            tracing::error!(
+                error = %e,
+                operation = "get_record_history_page",
+                "map history row"
+            );
+            client_err()
+        })?);
+    }
+
+    let shown = before.saturating_add(items.len() as u64);
+    let next_cursor = page.next_key.map(|key| {
+        PageCursor::with_key(shown, key.encode(), request.query_fingerprint(&scope)).encode()
+    });
+    Ok(Page {
+        items,
+        has_more: page.has_more,
+        total_count: (!page.has_more).then_some(shown),
+        next_request_offset: Some(u32::try_from(shown).unwrap_or(u32::MAX)),
+        ..Page::default()
+    }
+    .with_next_cursor(next_cursor))
+}
+
+/// Cursor fingerprint scope: the record and the kind filter.
+#[cfg(feature = "ssr")]
+fn history_cursor_scope(source: &RecordId, kinds: Option<&[String]>) -> String {
+    format!(
+        "record_history:{}:{}|{}",
+        source.table(),
+        source.id(),
+        kinds.map(|k| k.join(",")).unwrap_or_default()
+    )
 }
 
 #[cfg(feature = "ssr")]
@@ -208,18 +303,9 @@ fn require_session(ctx: &higgs::Higgs) -> Result<(), ServerFnError> {
     }
 }
 
-#[cfg(feature = "ssr")]
-fn row_kind_matches(row: &RecordHistoryModel, kinds: &[String]) -> bool {
-    let Some(id) = row.id.as_ref() else {
-        return false;
-    };
-    let (kind, _) = record_history::history_row_identity(id);
-    kinds.iter().any(|k| k == kind)
-}
-
 /// Sanitize internal errors so clients do not see Valence/table details.
 #[cfg(feature = "ssr")]
-fn client_err() -> ServerFnError {
+pub(crate) fn client_err() -> ServerFnError {
     ServerFnError::new("Failed to load record history")
 }
 

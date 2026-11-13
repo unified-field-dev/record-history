@@ -2,11 +2,11 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use valence::{QueryCore, RecordId, RecordPredicate, TraitRegistry, Valence};
+use valence::{RecordId, Valence};
 
 use crate::error::HistoryError;
 use crate::generated::{RecordHistoryFields, RecordHistoryModel};
-use crate::source::authorize::authorize_history_source_read;
+use crate::source::page::{history_for_source_page, MAX_HISTORY_SCAN};
 
 /// Full-row wire shape for a concrete `RecordHistory` implementor.
 ///
@@ -14,15 +14,15 @@ use crate::source::authorize::authorize_history_source_read;
 /// the same way generated models do. Trait-union projection into
 /// [`RecordHistoryModel`] skips that reshape and is not used here.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct HistoryRowWire {
+pub(super) struct HistoryRowWire {
     #[serde(default)]
-    id: Option<RecordId>,
+    pub(super) id: Option<RecordId>,
     source: RecordId,
     field_name: String,
     old_value: String,
     new_value: String,
     #[serde(with = "valence::datetime_unix")]
-    changed_at: DateTime<Utc>,
+    pub(super) changed_at: DateTime<Utc>,
     #[serde(default)]
     actor: Option<RecordId>,
 }
@@ -49,7 +49,7 @@ impl RecordHistoryFields for HistoryRowWire {
 }
 
 /// Map a concrete implementor row into the shared trait model.
-fn trait_model_from(
+pub(super) fn trait_model_from(
     row: &dyn RecordHistoryFields,
     id: Option<RecordId>,
     purpose: valence::DataUsePurpose,
@@ -68,16 +68,17 @@ fn trait_model_from(
         .map_err(|e| HistoryError::query(e, purpose))
 }
 
-/// All history rows for a source `RecordId` across every registered
-/// `RecordHistory` implementor in the process [`TraitRegistry`].
+/// History rows for a source `RecordId` across every registered
+/// `RecordHistory` implementor in the process [`valence::TraitRegistry`],
+/// newest first, at most [`MAX_HISTORY_SCAN`] of them.
 ///
 /// Authorizes the request actor against the parent `HistorySource` row first.
-/// Then, for each table registered for the `RecordHistory` trait via
-/// [`TraitRegistry::tables_for_trait`], runs a schema-aware [`QueryCore`]
-/// `where_source` load (full-row SELECT) and maps JSON into
-/// [`RecordHistoryModel`]. Product tables (for example Gauge `permission_history`)
-/// appear here when their crates are linked into the same binary; platform E2E
-/// fixtures are included the same way.
+/// Then reads each table registered for the `RecordHistory` trait in bounded,
+/// ordered windows (see [`history_for_source_page`], which this calls with no
+/// key) and maps rows into [`RecordHistoryModel`]. Product tables (for example
+/// Gauge `permission_history`) appear here when their crates are linked into
+/// the same binary; platform E2E fixtures are included the same way. Use
+/// [`history_for_source_page`] to page through longer histories.
 ///
 /// ## Errors
 ///
@@ -95,34 +96,7 @@ pub async fn history_for_source(
         record_id = source.id(),
         "listing history for source"
     );
-    authorize_history_source_read(source, valence).await?;
-
-    let predicate = RecordPredicate::Equals(source.clone());
-    let tables = TraitRegistry::global().tables_for_trait("RecordHistory");
-    let mut out = Vec::new();
-    // The data-use scan only lists a purpose written inline at the read. The
-    // error wraps carry a copy of the same text so they do not show up as reads.
-    let purpose = valence::use_!(
-        r"When you **view a record's history**, we **search every table that stores change history** for entries about that record, loading what changed, the old and new values, when, and who made the change. These entries become the record's **timeline**, and this step only runs after we have confirmed you are allowed to read that record."
-    );
-
-    for table in tables {
-        let rows: Vec<HistoryRowWire> = QueryCore::new(table.to_string())
-            .where_record("source".to_string(), predicate.clone())
-            .execute(valence, valence::use_!(r"When you **view a record's history**, we **search every table that stores change history** for entries about that record, loading what changed, the old and new values, when, and who made the change. These entries become the record's **timeline**, and this step only runs after we have confirmed you are allowed to read that record."))
-            .await
-            .map_err(|e| HistoryError::query(e, purpose))?;
-        for row in rows {
-            let id = row.id.clone().map(|rid| {
-                if rid.table() == table {
-                    rid
-                } else {
-                    RecordId::new(table, rid.id())
-                }
-            });
-            out.push(trait_model_from(&row, id, purpose)?);
-        }
-    }
-
-    Ok(out)
+    history_for_source_page(source, valence, None, 0, MAX_HISTORY_SCAN, None)
+        .await
+        .map(|page| page.rows)
 }
